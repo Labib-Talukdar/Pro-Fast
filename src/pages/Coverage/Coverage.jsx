@@ -71,12 +71,6 @@ const Coverage = () => {
     items.district.toLowerCase().includes(search.toLowerCase())
   );
 
- 
-
-
-
- 
-
   return (
     <>
       <style>
