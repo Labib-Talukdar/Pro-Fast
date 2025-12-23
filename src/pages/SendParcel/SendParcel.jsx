@@ -544,10 +544,13 @@
 
 
 
-// final file
+//---------------------final file----------------------------
 
- import { useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useState } from "react";
+import PriceTable from "./PriceTable";
+import useAxiosSecure from "../../hocks/useAxiosSecure";
+import UseAuth from "../../hocks/UseAuth";
 
 const SendParcel = () => {
   const {
@@ -556,6 +559,9 @@ const SendParcel = () => {
     formState: { errors },
     reset,
   } = useForm();
+
+  const axiosSecure = useAxiosSecure();
+  const {user} = UseAuth()
 
   const [showModal, setShowModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -568,7 +574,7 @@ const SendParcel = () => {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const dd = String(date.getDate()).padStart(2, "0");
-    const random = Math.floor(1000 + Math.random * 9000);
+    const random = Math.floor(1000 + Math.random() * 9000);
     return `SP-${yyyy}${mm}${dd}-${random}`;
   };
 
@@ -620,16 +626,27 @@ Total = ৳${price}`;
 
     const finalData = {
       ...data,
+      created_by: user?.email,
       trackingId: newTrackingId,
       price: priceResult.price,
       submittedAt: new Date().toISOString(),
     };
 
     console.log("FINAL PARCEL DATA:", finalData);
-
-    setTrackingId(newTrackingId);
+     axiosSecure.post('/parcels', finalData)
+     .then(res => {
+      console.log(res.data)
+      if(res.data.insertedId){
+           setTrackingId(newTrackingId);
     setPriceInfo(priceResult);
     setShowModal(true);
+      }
+     })
+
+
+    // setTrackingId(newTrackingId);
+    // setPriceInfo(priceResult);
+    // setShowModal(true);
   };
 
   const confirmBooking = () => {
@@ -644,11 +661,16 @@ Total = ৳${price}`;
     setPriceInfo(null);
   };
 
+
+
   // ---------------- UI ----------------
   return (
+    
     <div className="max-w-6xl mx-auto p-6 bg-base-100 shadow rounded-xl">
+       
       <h2 className="text-2xl font-semibold mb-6">Add Parcel</h2>
-
+      {/* Add Parcel */}
+       <PriceTable />
       <div className="space-y-6">
         {/* PARCEL TYPE */}
         <div>
@@ -732,7 +754,7 @@ Total = ৳${price}`;
             {...register("description", {
               required: "Parcel description is required",
               minLength: {
-                value: 10,
+                value: 1,
                 message: "Description must be at least 10 characters",
               },
             })}
@@ -835,7 +857,7 @@ Total = ৳${price}`;
             </div>
           </div>
         </div>
-
+         
         {/* RECEIVER DETAILS */}
         <div>
           <h3 className="font-semibold mb-3">Receiver Details</h3>
